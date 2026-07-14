@@ -1,23 +1,26 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const cors = require('cors');
 
 const app = express();
 const prisma = new PrismaClient();
 
+app.use(cors());
 app.use(express.json());
 
-// Database Connection Test
-async function startServer() {
+app.post('/api/register', async (req, res) => {
     try {
-        await prisma.$connect();
-        console.log('✅ Database Connected Successfully!');
-        
-        app.listen(3001, () => {
-            console.log('🚀 Server is running on port 3001');
+        const { name, email, password } = req.body;
+        const user = await prisma.user.create({
+            data: { name, email, password }
         });
+        res.json({ message: "Success", user });
     } catch (error) {
-        console.error('❌ Database Connection Failed:', error.message);
+        console.error("Database Error:", error);
+        res.status(500).json({ error: error.message });
     }
-}
+});
 
-startServer();
+app.listen(3001, () => {
+    console.log('🚀 Server is running on port 3001');
+});
